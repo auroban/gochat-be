@@ -1,0 +1,6 @@
+version: "3.9"
+services:
+  user-service:
+    build: ./user-service
+    ports:
+      - "4050:4050"
