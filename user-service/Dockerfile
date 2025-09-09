@@ -11,6 +11,7 @@ RUN go build -o user-service ./cmd/user-service
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/user-service .
-COPY config.yaml .
+COPY configs/config.yaml .
+COPY migrations /app/migrations
 EXPOSE 4050
 CMD ["./user-service"]
