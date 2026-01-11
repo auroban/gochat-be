@@ -1,0 +1,7 @@
+services:
+  user-service:
+    build: ./user-service
+    ports:
+      - "4050:4050"
+    env_file:
+      - user-service/.env

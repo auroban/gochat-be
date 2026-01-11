@@ -1,0 +1,4 @@
+server:
+  port: 4050
+log:
+  level: debug
