@@ -6,10 +6,11 @@ import (
 
 	"github.com/auroban/gochat-be/user-service/internal/config"
 	"github.com/auroban/gochat-be/user-service/internal/db"
-	"github.com/auroban/gochat-be/user-service/internal/handler"
 	"github.com/auroban/gochat-be/user-service/internal/repository"
 	"github.com/auroban/gochat-be/user-service/internal/router"
+	"github.com/auroban/gochat-be/user-service/internal/security"
 	"github.com/auroban/gochat-be/user-service/internal/service"
+	handler "github.com/auroban/gochat-be/user-service/internal/transport/http"
 	"github.com/go-playground/validator/v10"
 
 	log "github.com/sirupsen/logrus"
@@ -33,7 +34,7 @@ func Start(config *config.Config) {
 	db.RunMigration(databaseURL)
 	validator := validator.New()
 	userRepository := repository.NewUserRepository(dbConn)
-	userService := service.NewUserService(userRepository)
+	userService := service.NewUserService(userRepository, security.BcryptHasher{})
 	userHandler := handler.NewUserHandler(validator, userService)
 	router := router.NewRouter(userHandler)
 	addr := fmt.Sprintf(":%d", config.Server.Port)
