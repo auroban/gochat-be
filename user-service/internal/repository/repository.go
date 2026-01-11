@@ -2,10 +2,14 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/auroban/gochat-be/user-service/internal/domainerror"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 const QUERY_FIND_BY_ID = `SELECT * FROM "user" WHERE "id" = :id`
@@ -57,7 +61,14 @@ func (r *UserRepository) FindById(ctx context.Context, id int) (*User, error) {
 
 	var user User
 	err = stmt.Get(&user, map[string]interface{}{"id": id})
-	return &user, err
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domainerror.ErrNoUserFound
+		} else {
+			return nil, err
+		}
+	}
+	return &user, nil
 }
 
 func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*User, error) {
@@ -69,6 +80,13 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 
 	var user User
 	err = stmt.Get(&user, map[string]interface{}{"username": username})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domainerror.ErrNoUserFound
+		} else {
+			return nil, err
+		}
+	}
 	return &user, err
 }
 
@@ -81,6 +99,13 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, 
 
 	var user User
 	err = stmt.Get(&user, map[string]interface{}{"email": email})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, domainerror.ErrNoUserFound
+		} else {
+			return nil, err
+		}
+	}
 	return &user, err
 }
 
@@ -94,9 +119,16 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *User) (*User, err
 	var id int
 	err = stmt.Get(&id, user)
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert user: %w", err)
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			return nil, fmt.Errorf("%w: constraint=%s detail=%s",
+				domainerror.ErrUserAlreadyExists,
+				pqErr.Constraint,
+				pqErr.Detail,
+			)
+		}
+		return nil, err
 	}
-
 	user.ID = id
 	return user, nil
 }
