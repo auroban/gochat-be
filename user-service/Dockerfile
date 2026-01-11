@@ -5,7 +5,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -o user-service ./cmd/user-service
+RUN go build -o user-service ./cmd/server
 
 # Final minimal image
 FROM alpine:latest

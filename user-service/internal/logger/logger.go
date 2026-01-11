@@ -17,5 +17,3 @@ func Init(level string) {
 	})
 	log.SetOutput(os.Stdout)
 }
-
-var ServerLogger = log.WithField("package", "server")
