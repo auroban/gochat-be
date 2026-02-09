@@ -1,8 +1,7 @@
 package db
 
 import (
-	"path/filepath"
-	"runtime"
+	"os"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres" // Postgres driver
@@ -10,10 +9,11 @@ import (
 )
 
 func RunMigration(dbUrl string) {
-
-	_, b, _, _ := runtime.Caller(0) // get current file path
-	basepath := filepath.Dir(b)     // directory of migration.go
-	migrationsPath := "file://" + filepath.Join(basepath, "../../migrations")
+	// Default to ./migrations, can be overridden by MIGRATIONS_PATH env var
+	migrationsPath := os.Getenv("MIGRATIONS_PATH")
+	if migrationsPath == "" {
+		migrationsPath = "file://migrations"
+	}
 
 	m, err := migrate.New(
 		migrationsPath,

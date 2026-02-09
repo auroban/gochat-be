@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/auroban/gochat-be/user-service/internal/domainerror"
@@ -110,6 +111,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*User, 
 }
 
 func (r *UserRepository) CreateUser(ctx context.Context, user *User) (*User, error) {
+	log.Printf("Creating user: username=%v", user)
 	stmt, err := r.db.PrepareNamedContext(ctx, QUERY_CREATE_USER)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare statement: %w", err)

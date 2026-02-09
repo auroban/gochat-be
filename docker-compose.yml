@@ -1,6 +1,8 @@
 services:
   user-service:
-    build: ./user-service
+    build:
+      context: .
+      dockerfile: ./user-service/Dockerfile
     ports:
       - "4050:4050"
     env_file:

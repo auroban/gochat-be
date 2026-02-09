@@ -27,9 +27,18 @@ func (s *UserService) CreateNewUser(ctx context.Context, req models.ReqCreateUse
 		return nil, err
 	}
 	user.PasswordHash = hashedPW
+	user.Status = "active"
 	return s.repository.CreateUser(ctx, user)
 }
 
 func (s *UserService) GetUserByID(ctx context.Context, id int) (*repository.User, error) {
 	return s.repository.FindById(ctx, id)
+}
+
+func (s *UserService) GetUserByUsername(ctx context.Context, username string) (*repository.User, error) {
+	return s.repository.FindByUsername(ctx, username)
+}
+
+func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*repository.User, error) {
+	return s.repository.FindByEmail(ctx, email)
 }

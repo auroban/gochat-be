@@ -2,18 +2,17 @@ package server
 
 import (
 	"fmt"
-	"net/http"
+	"net"
 
+	userv1 "github.com/auroban/gochat-be/apis/proto/user/v1"
 	"github.com/auroban/gochat-be/user-service/internal/config"
 	"github.com/auroban/gochat-be/user-service/internal/db"
 	"github.com/auroban/gochat-be/user-service/internal/repository"
-	"github.com/auroban/gochat-be/user-service/internal/router"
 	"github.com/auroban/gochat-be/user-service/internal/security"
 	"github.com/auroban/gochat-be/user-service/internal/service"
-	handler "github.com/auroban/gochat-be/user-service/internal/transport/http"
-	"github.com/go-playground/validator/v10"
-
+	transportGrpc "github.com/auroban/gochat-be/user-service/internal/transport/grpc"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 var logger = log.WithField("package", "server")
@@ -30,17 +29,24 @@ func Start(config *config.Config) {
 		config.Database.SSLMode,
 		config.Database.Schema,
 	)
-	dbConn := db.Connect(*config)
+	conn := db.Connect(*config)
 	db.RunMigration(databaseURL)
-	validator := validator.New()
-	userRepository := repository.NewUserRepository(dbConn)
+
+	userRepository := repository.NewUserRepository(conn)
 	userService := service.NewUserService(userRepository, security.BcryptHasher{})
-	userHandler := handler.NewUserHandler(validator, userService)
-	router := router.NewRouter(userHandler)
+
 	addr := fmt.Sprintf(":%d", config.Server.Port)
-	logger.Infof("Starting server on port: %s", addr)
-	if err := http.ListenAndServe(addr, router); err != nil {
-		logger.Fatalf("Failed to start server: %v", err)
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		logger.Fatalf("Failed to listen on %s: %v", addr, err)
 	}
 
+	grpcServer := grpc.NewServer()
+	userServer := transportGrpc.NewUserServer(userService)
+	userv1.RegisterUserServiceServer(grpcServer, userServer)
+
+	logger.Infof("Starting gRPC server on %s", addr)
+	if err := grpcServer.Serve(listener); err != nil {
+		logger.Fatalf("Failed to start gRPC server: %v", err)
+	}
 }
