@@ -1,9 +1,17 @@
 services:
-  user-service:
+  profile-service:
     build:
       context: .
-      dockerfile: ./user-service/Dockerfile
+      dockerfile: ./profile-service/Dockerfile
     ports:
       - "4050:4050"
     env_file:
-      - user-service/.env
+      - profile-service/.env
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./auth-service/Dockerfile
+    ports:
+      - "4051:4051"
+    env_file:
+      - auth-service/.env

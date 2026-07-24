@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/auroban/gochat-be/auth-service/proto;auth";
+
+// AuthService is a placeholder contract for the auth-service skeleton.
+// Real RPCs (Register, Login, GetUser, ChangeUsername, ...) are added later.
+service AuthService {
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse)
+    rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+    string status = 1;
+}

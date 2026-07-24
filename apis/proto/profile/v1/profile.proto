@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package profile.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/auroban/gochat-be/profile-service/proto;profile";
+
+service ProfileService {
+    rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse);
+    rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+}
+
+enum ProfileStatus {
+    PROFILE_STATUS_UNSPECIFIED = 0;
+    PROFILE_STATUS_ACTIVE = 1;
+    PROFILE_STATUS_INACTIVE = 2;
+    PROFILE_STATUS_SUSPENDED = 3;
+}
+
+message CreateProfileRequest {
+    string username = 1 [(buf.validate.field).string = {
+        min_len: 3,
+        max_len: 32
+    }];
+    string email = 2 [(buf.validate.field).string.email = true];
+    string password = 3 [(buf.validate.field).string.min_len = 8];
+    string display_name = 4 [(buf.validate.field).string.min_len = 1];
+    string auth_provider = 5 [(buf.validate.field).string.min_len = 1];
+    string type = 6 [(buf.validate.field).string.min_len = 1];
+}
+
+message CreateProfileResponse {
+    string username = 1;
+    string email = 2;
+    string display_name = 3;
+    string auth_provider = 4;
+    string type = 5;
+    ProfileStatus status = 6;
+}
+
+message GetProfileRequest {
+    option (buf.validate.message).cel = {
+        id: "username_or_email_required"
+        message: "either username or email must be present"
+        expression: "this.username != '' || this.email != ''"
+    };
+    string username = 1;
+    string email = 2;
+}
+
+message GetProfileResponse {
+    string username = 1;
+    string email = 2;
+    string display_name = 3;
+    string auth_provider = 4;
+    string type = 5;
+    ProfileStatus status = 6;
+}
